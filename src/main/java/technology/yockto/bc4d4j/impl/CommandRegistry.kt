@@ -94,6 +94,14 @@ class CommandRegistry internal constructor(val client: IDiscordClient) : AutoClo
         }
     }
 
+    fun getSubCommands(command: MainCommand): Set<SubCommand> { //May be null so use a normal default
+        return dispatcher.mainSubCommands.computeIfAbsent(command, { ConcurrentHashMap.newKeySet() })
+    }
+
+    fun getSubCommands(command: SubCommand): Set<SubCommand> { //May be null so use a normal default
+        return dispatcher.subSubCommands.computeIfAbsent(command, { ConcurrentHashMap.newKeySet() })
+    }
+
     override fun close() = client.dispatcher.unregisterListener(dispatcher)
     private companion object : KLogging()
 }
