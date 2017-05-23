@@ -7,6 +7,8 @@ Setting up BC4D4J is as simple as activating the module. Either add the **.jar**
 val client: IDiscordClient = ...
 client.moduleLoader.loadModule(BC4D4J())
 ```
+**NOTE:** If you're using the latter method, you must add BC4D4J to your CLASSPATH! To do so, it is recommended to use the [jitpack.io](https://jitpack.io/#danthonywalker/bc4d4j) repository.
+
 Now we need to design some commands. Let's make a *Ping -> Pong!* example.
 ```kotlin
 class PingCommand {
