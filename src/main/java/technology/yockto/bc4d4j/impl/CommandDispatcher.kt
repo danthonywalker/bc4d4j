@@ -30,6 +30,7 @@ import technology.yockto.bc4d4j.api.ExceptionHandler
 import technology.yockto.bc4d4j.api.MainCommand
 import technology.yockto.bc4d4j.api.SubCommand
 import java.lang.Exception
+import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 
 internal class CommandDispatcher : IListener<MessageReceivedEvent> {
@@ -96,16 +97,24 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
             !(ignoreDMs && privateMessage) &&
             !(ignoreBots && botUser)
 
-        val subCommandHierarchy = mutableListOf<SubCommand>()
-        fun SubCommand.findSubCommand(index: Int): SubCommand {
-            subCommandHierarchy.add(this) //Higher in hierarchy
+        val subCommandHierarchy = LinkedList<SubCommand>()
+        fun SubCommand.addToHierarchy(index: Int) {
+            subCommandHierarchy.add(this)
 
-            //Get SubCommands under the current SubCommand and attempts to find the next one in the hierarchy
-            return subSubCommands[this]?.firstOrNull { it.isValid(index) }?.findSubCommand(index + 1) ?: this
+            subSubCommands[this]?.firstOrNull { //Add all possible SubCommands
+                it.aliases.any { it.equals(arguments.getOrNull(index), true) }
+            }?.addToHierarchy(index + 1)
         }
 
-        //Get SubCommands under the MainCommand and attempt to get the last SubCommand in the hierarchy
-        val subCommand = mainSubCommands[mainCommand]?.firstOrNull { it.isValid(0) }?.findSubCommand(1)
+        mainSubCommands[mainCommand]?.firstOrNull { //Fills hierarchy.
+            it.aliases.any { it.equals(arguments.getOrNull(0), true) }
+        }?.addToHierarchy(1)
+
+        var subCommand: SubCommand? = subCommandHierarchy.peekLast()
+        while(subCommand?.isValid(subCommandHierarchy.size - 1) == false) {
+            subCommandHierarchy.pollLast() //Invalid so it's safe to remove
+            subCommand = subCommandHierarchy.peekLast()
+        }
 
         val messageBuilder = MessageBuilder(client).withChannel(channel)
         val commandContext = CommandContext(message, arguments, mainCommand, event, subCommandHierarchy, messageBuilder)
@@ -114,12 +123,12 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
             subCommands[subCommand]?.let {
 
                 try {
-                    RequestBuffer.request { message.takeIf { subCommand.deleteMessage }?.delete() }
+                    RequestBuffer.request { message.takeIf { subCommand!!.deleteMessage }?.delete() }
                     it.function.call(it.instance, commandContext)
 
                 } catch(exception: Exception) {
                     logger.info(exception, { subCommand.toString() })
-                    exceptionHandlers.filterKeys { it.name == subCommand.name }.forEach { handler, context ->
+                    exceptionHandlers.filterKeys { it.name == subCommand!!.name }.forEach { handler, context ->
                         context.function.call(it.instance, ExceptionContext(exception, commandContext, handler))
                     }
                 }
