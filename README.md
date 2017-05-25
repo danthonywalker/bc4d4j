@@ -1,15 +1,16 @@
 # bc4d4j
-BC4D4J is an annotation-based command framework specifically designed for [Discord4J](https://github.com/austinv11/Discord4J) written in Kotlin.
+Better Commands 4 Discord4J is an easy-to-use, flexible, annotation-based command framework specifically designed for [Discord4J](https://github.com/austinv11/Discord4J) written in Kotlin.
 
 ## Getting Started
-Setting up BC4D4J is as simple as activating the module. Either add the **.jar** to your `modules` folder or add the following code to the start of your program.
+Setting up BC4D4J is as simple as activating the module. Either add the **.jar** to your `modules` folder or add the following code to your program:
 ```kotlin
 val client: IDiscordClient = ...
 client.moduleLoader.loadModule(BC4D4J())
 ```
-**NOTE:** If you're using the latter method, you must add BC4D4J to your CLASSPATH! To do so, it is recommended to use the [jitpack.io](https://jitpack.io/#danthonywalker/bc4d4j) repository.
+>If you're using the latter method, you must add BC4D4J to your CLASSPATH. The simplest way to do so is through a dependency management system such as [Maven](https://maven.apache.org/) or [Gradle](https://gradle.org/) and using the [jitpack.io](https://jitpack.io/#danthonywalker/bc4d4j) repository.
 
-Now we need to design some commands. Let's make a *Ping -> Pong!* example.
+### MainCommand
+Commands are registered through instances of functions that are annotated with the `@MainCommand` annotation.
 ```kotlin
 class PingCommand {
     @MainCommand(
@@ -21,60 +22,67 @@ class PingCommand {
     }
 }
 ```
-Now we need to register the command.
+The above code indicates that it wants the `ping()` function to be invoked when a user types `~ping`; in this case, the bot will respond back with a `Pong!` message.
+
+However, before that can happen, the command must be registered. To register the above command, simply invoke the following code:
 ```kotlin
 client.getCommandRegistry().registerCommands(PingCommand())
 ```
-And that is it! When a user types `~ping` your bot will respond with `Pong!`.
-### SubCommands
-BC4D4J supports sub-command based processing! This will allow you to handle pre-defined arguments in a more elegant and easier fashion as well splitting up your command functions.
 
-First, define a `SubCommand` annotation.
+### SubCommand
+Sometimes, your commands have strictly defined arguments that you wish to handle separately. Luckily, BC4D4J makes it intuitive to define such routines.
+
+Say we want to define a sub-command for `ping` where if the user adds the word `pong` as an argument the message sent is `Bang!` instead. To do so, we can add the following to the `PingCommand` class.
 ```kotlin
 @SubCommand(
-    name = "aSubCommand",
-    ...)
-fun subCommand(context: CommandContext) {...}
+    name = "pong",
+    aliases = arrayOf("pong"))
+fun pong(context: CommandContext) {
+    RequestBuffer.request { context.messageBuilder.withContent("Bang!").send() }
+}
 ```
-Then all you have to do is register your SubCommand!
+>BC4D4J will allow you to define this annotation anywhere in your code. However, just like with the `MainCommand` example, the instance of that class must be registered as well (the order of registration does not matter).
+
+Now we must change our `MainCommand` annotation to the following.
 ```kotlin
 @MainCommand(
-    ...
-    subCommands = arrayOf("aSubCommand"))
+    prefix = "~",
+    name = "ping",
+    aliases = arrayOf("ping"),
+    subCommands = arrayOf("pong"))
 ```
-And you're done! The `SubCommand` will be called whenever a command based off the `MainCommand` has a matching alias to your new command!
+Notice that the String we provided to `subCommands` is the same String as the `name` for our `SubCommand`.
 
-What's great about the `SubCommand` feature is it supports *nested sub-commands!* The process is exactly the same as registering with the `MainCommand`.
+BC4D4J also supports nested sub-commands meaning your command arguments can span infinitely (or until you reach Discord's message limit).
+##### Hierarchy
+BC4D4J handles and passes commands in a hierarchy. It'll attempt to invoke the last *valid* annotation in the hierarchy where the first in the hierarchy is the one and only `MainCommand` and then the nested `SubCommand` structure(s). Unlike other libraries, other functions in the hierarchy are **not** invoked; meaning either one or zero functions will be invoked for any given command.
 
-Additionally, each `SubCommand` only has the restrictions that it itself defines. For example, if your `MainCommand` has `ignoreBots` set to `true`, but your `SubCommand` has `ignoreBots` set to `false` and a message by a bot is sent then the `SubCommand` can still be called! While this makes setting up certain commands a bit more tedious, it allows a lot of flexibility.
 ### ExceptionHandler
-The `ExceptionHandler` annotation does exactly what you expect it to do. Whenever an exception is thrown while processing your command, it'll be passed on to a linking `ExceptionHandler`. The use of this annotation is completely optional. Also, if an exception is thrown, BC4D4J will always automatically log the exception so you don't have to worry about that!
+Sometimes, you don't want to liter your codebase with try-catch statements everywhere. Luckily, BC4D4J provides a way to centralize exception management.
 
-To use, simply register a function as follows:
 ```kotlin
-@ExceptionHandler(name = "command")
-fun exceptionHandler(context: ExceptionContext) {...}
+@ExceptionHandler(name = "ping")
+@ExceptionHandler(name = "pong")
+fun pingExceptionHandler(context: ExceptionHandler) {...}
 ```
-Note that `name` is not the *name* of the `ExceptionHandler`, but the `name` of *any* `MainCommand` or `SubCommand`.
+Notice that the String we provided to `name` is the same String as the `name` for our `MainCommand` and `SubCommand`.
 
-### Rules and Quirks
-To help organize commands internally some restrictions are in-place. If properly designed, these restrictions should never interfere with how you organize your commands externally.
-1. All `MainCommand` annotations must have an unique `name`. Any non-unique names are discarded.
-2. All `SubCommand` annotations must have an unique `name`. Any non-unique names are discarded.
-3. If `requireMention` is set to `true` it is wise to have your prefix set to a space.
-4. Due to the flexibility of BC4D4J, commands are registered *globally*. Meaning commands in one class are intertwined with the commands from another. This allows commands to be split across classes, but can also have some sideffects if one is not careful. Choose your `name` for your commands wisely and avoid registering multiple instances of the same class.
+Also, don't worry, BC4D4J will automatically log all exceptions for you whether you have this annotation or not.
 
-### Command Settings
-* `name`: The unique name to register the `MainCommand` or `SubCommand`.
-* `prefix` *(`MainCommand` only)*: The prefix to a command, before its alias.
-* `usage`: How to use the command. This has no functional purpose.
-* `aliases`: The keyword(s) that activate the command. This is followed immediately after the `prefix`.
-* `description`: Describes what the command is/does. This has no functional purpose.
-* `ignoreDMs`: Ignore messages that come from a Direct Message (aka private message).
-* `ignoreBots`: Ignore messages that come from bot users.
-* `ignoreCase`: This applies to the case-sensitivity of aliases.
-* `ignoreGuilds`: Ignore messages that come from guilds.
-* `deleteMessage`: Delete the message that the command was invoked with.
-* `requireMention` *(`MainCommand` only)*: Require the user to mention the bot to use the command. This comes before `prefix`.
-* `subCommands`: `name`s for all the `SubCommand` annoations beneath this particular command in the hierarchy.
-* `permissions`: Permissions that are required by the *user* to activate the command.
+### Command Properties
+As mentioned earlier, BC4D4J will always attempt to invoke the last *valid* annotation in its command hierarchy. An annotation is considered to be valid if the message follows all the properties that the annotation defines. Here's a list of all the properties:
+
+* `name` : A *globally unique* name to register a `MainCommand` or `SubCommand`. **Default: *none***
+* `prefix` : The prefix required to invoke a command directly before its alias. **Default: *none* |** `MainCommand` ***Only***
+* `usage` : How to use the command. This has no functional purpose. **Default: *""***
+* `aliases` : The keyword(s) that activate a command. **Default: *none***
+* `displayName` : A more user-friendly version of `name`. This has no functional purpose. **Default: *""***
+* `description` : Describes what the command is/does. This has no functional purpose. **Default: *""***
+* `ignoreDMs` : Ignore messages that come from Direct Messages (aka private messages). **Default: *true***
+* `ignoreBots` : Ignore messages that come from bot users. **Default: *true***
+* `ignoreCase` : Whether or not to be case-sensitive towards the aliases. **Default: *false***
+* `ignoreGuilds` : Ignore messages that come from guilds. **Default: *false***
+* `deleteMessage` : Delete the message that the command was (successfully) invoked with. **Default: *false***
+* `requireMention` : Require the message to contain a mention towards the bot in order to use the command. This comes immediately before the prefix. **Default: *false***
+* `subCommands` : An array of `name` properties for all the `SubCommand` annotations beneath this particular command in the hierarchy. **Default: *emptyArray()***
+* `permissions` : Permissions that are required by the *user* to activate the command. **Default: *emptyArray()***

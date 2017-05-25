@@ -42,14 +42,8 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
     override fun handle(event: MessageReceivedEvent) {
         val message = event.message
         val client = message.client
-        val author = message.author
-        val botUser = author.isBot
-
         val content = message.content
-        val channel = message.channel
         val messageId = message.longID
-        val privateMessage = channel.isPrivate
-        val permissions = channel.getModifiedPermissions(author)
 
         val mentionToken = message.tokenize().takeIf(MessageTokenizer::hasNextMention)?.nextMention()?.let {
             it as? UserMentionToken //Grab a mention token only if the mention was at the start of a message
@@ -83,6 +77,13 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
             return
         }
 
+        val author = message.author
+        val botUser = author.isBot
+
+        val channel = message.channel
+        val privateMessage = channel.isPrivate
+        val permissions = channel.getModifiedPermissions(author)
+
         fun MainCommand.isValid() = !(ignoreBots && botUser) &&
             permissions.containsAll(this.permissions.toSet()) &&
             aliases.any { it.equals(command, ignoreCase) } &&
@@ -99,12 +100,12 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
         fun SubCommand.findSubCommand(index: Int): SubCommand {
             subCommandHierarchy.add(this) //Higher in hierarchy
 
-            //Take SubCommands under the current SubCommand and attempts to find the next one in the hierarchy
-            return subSubCommands[this]?.singleOrNull { it.isValid(index) }?.findSubCommand(index + 1) ?: this
+            //Get SubCommands under the current SubCommand and attempts to find the next one in the hierarchy
+            return subSubCommands[this]?.firstOrNull { it.isValid(index) }?.findSubCommand(index + 1) ?: this
         }
 
-        //Take SubCommands under the MainCommand and attempt to get the last SubCommand in the hierarchy
-        val subCommand = mainSubCommands[mainCommand]?.singleOrNull { it.isValid(0) }?.findSubCommand(1)
+        //Get SubCommands under the MainCommand and attempt to get the last SubCommand in the hierarchy
+        val subCommand = mainSubCommands[mainCommand]?.firstOrNull { it.isValid(0) }?.findSubCommand(1)
 
         val messageBuilder = MessageBuilder(client).withChannel(channel)
         val commandContext = CommandContext(message, arguments, mainCommand, event, subCommandHierarchy, messageBuilder)
