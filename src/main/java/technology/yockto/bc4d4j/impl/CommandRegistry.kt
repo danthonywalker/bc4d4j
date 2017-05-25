@@ -60,12 +60,12 @@ class CommandRegistry internal constructor(val client: IDiscordClient) : AutoClo
         subCommands.forEach { subCommand -> //Registers SubCommands under other commands.
             mainCommands.singleOrNull { it.subCommands.contains(subCommand.name) }?.let {
                 dispatcher.mainSubCommands.computeIfAbsent(it, { ConcurrentHashMap.newKeySet() }).add(subCommand)
-                logger.info { "Added SubCommand, $subCommand, as a SubCommand to MainCommand, $it" }
+                logger.info { "Added SubCommand, ${subCommand.name}, as a SubCommand to MainCommand, ${it.name}" }
             }
 
             subCommands.singleOrNull { it.subCommands.contains(subCommand.name) }?.let {
                 dispatcher.subSubCommands.computeIfAbsent(it, { ConcurrentHashMap.newKeySet() }).add(subCommand)
-                logger.info { "Added SubCommand, $subCommand, as a SubCommand to SubCommand, $it" }
+                logger.info { "Added SubCommand, ${subCommand.name}, as a SubCommand to SubCommand, ${it.name}" }
             }
         }
     }
