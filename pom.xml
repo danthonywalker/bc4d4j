@@ -23,7 +23,7 @@
 
     <groupId>technology.yockto.bc4d4j</groupId>
     <artifactId>bc4d4j</artifactId>
-    <version>0.1.0</version>
+    <version>0.3.0</version>
 
     <properties>
         <slf4j.version>1.7.25</slf4j.version>
