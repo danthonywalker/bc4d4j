@@ -30,6 +30,7 @@ annotation class MainCommand(
     val prefix: String,
     val usage: String = "",
     val aliases: Array<String>,
+    val displayName: String = "",
     val description: String = "",
     val ignoreDMs: Boolean = true,
     val ignoreBots: Boolean = true,
