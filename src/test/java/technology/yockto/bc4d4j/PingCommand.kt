@@ -19,6 +19,8 @@ package technology.yockto.bc4d4j
 
 import sx.blah.discord.util.RequestBuffer
 import technology.yockto.bc4d4j.api.CommandContext
+import technology.yockto.bc4d4j.api.ExceptionContext
+import technology.yockto.bc4d4j.api.ExceptionHandler
 import technology.yockto.bc4d4j.api.MainCommand
 import technology.yockto.bc4d4j.api.SubCommand
 
@@ -47,5 +49,17 @@ class PingCommand {
         aliases = arrayOf("mention"))
     fun pingMention(context: CommandContext) {
         RequestBuffer.request { context.messageBuilder.withContent("Mentioned!").send() }
+    }
+
+    @MainCommand(
+        name = "exception",
+        prefix = "exception",
+        aliases = arrayOf(""))
+    @Suppress("UNUSED_PARAMETER")
+    fun exception(context: CommandContext): Nothing = throw RuntimeException("Exception!")
+
+    @ExceptionHandler(name = "exception")
+    fun exceptionHandle(context: ExceptionContext) {
+        RequestBuffer.request { context.context.messageBuilder.withContent("Exception!").send() }
     }
 }
