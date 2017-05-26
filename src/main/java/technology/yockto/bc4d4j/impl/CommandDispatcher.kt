@@ -30,6 +30,7 @@ import technology.yockto.bc4d4j.api.ExceptionHandler
 import technology.yockto.bc4d4j.api.MainCommand
 import technology.yockto.bc4d4j.api.SubCommand
 import java.lang.Exception
+import java.lang.reflect.InvocationTargetException
 import java.util.LinkedList
 import java.util.concurrent.ConcurrentHashMap
 
@@ -126,7 +127,10 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
                     RequestBuffer.request { message.takeIf { subCommand!!.deleteMessage }?.delete() }
                     it.function.call(it.instance, commandContext)
 
-                } catch(exception: Exception) {
+                } catch(wrapperException: InvocationTargetException) {
+                    logger.debug(wrapperException, { "Before unwrap" })
+                    val exception = wrapperException.cause as Exception
+
                     logger.info(exception, { subCommand.toString() })
                     exceptionHandlers.filterKeys { it.name == subCommand!!.name }.forEach { handler, context ->
                         context.function.call(it.instance, ExceptionContext(exception, commandContext, handler))
@@ -141,7 +145,10 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
                     RequestBuffer.request { message.takeIf { mainCommand.deleteMessage }?.delete() }
                     it.function.call(it.instance, commandContext)
 
-                } catch(exception: Exception) {
+                } catch(wrapperException: InvocationTargetException) {
+                    logger.debug(wrapperException, { "Before unwrap" })
+                    val exception = wrapperException.cause as Exception
+
                     logger.info(exception, { mainCommand.toString() })
                     exceptionHandlers.filterKeys { it.name == mainCommand.name }.forEach { handler, context ->
                         context.function.call(it.instance, ExceptionContext(exception, commandContext, handler))
