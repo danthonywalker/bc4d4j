@@ -83,6 +83,6 @@ As mentioned earlier, BC4D4J will always attempt to invoke the last *valid* anno
 * `ignoreCase` : Whether or not to be case-sensitive towards the aliases. **Default: *false***
 * `ignoreGuilds` : Ignore messages that come from guilds. **Default: *false***
 * `deleteMessage` : Delete the message that the command was (successfully) invoked with. **Default: *false***
-* `requireMention` : Require the message to contain a mention towards the bot in order to use the command. This comes immediately before the prefix. **Default: *false* |** `MainCommand` ***only***
+* `requireMention` : Require the message to contain a mention towards the bot in order to use the command. This comes immediately before the prefix. **Default: *false* |** `MainCommand` ***Only***
 * `subCommands` : An array of `name` properties for all the `SubCommand` annotations beneath this particular command in the hierarchy. **Default: *emptyArray()***
 * `permissions` : Permissions that are required by the *user* to activate the command. **Default: *emptyArray()***
