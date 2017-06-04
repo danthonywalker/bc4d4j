@@ -47,6 +47,9 @@ internal class CommandDispatcher : IListener<MessageReceivedEvent> {
         val content = message.content
         val messageId = message.longID
 
+        //Prevents an IllegalArgumentException below
+        takeIf { content.isEmpty() }?.let { return }
+        
         val mentionToken = message.tokenize().takeIf(MessageTokenizer::hasNextMention)?.nextMention()?.let {
             it as? UserMentionToken //Grab a mention token only if the mention was at the start of a message
         }?.takeIf { it.startIndex == 0 }
