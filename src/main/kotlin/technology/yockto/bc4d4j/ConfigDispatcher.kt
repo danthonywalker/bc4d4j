@@ -35,7 +35,6 @@ import technology.yockto.bc4d4j.context.ExceptionContext
 import technology.yockto.bc4d4j.context.ResultContext
 import technology.yockto.bc4d4j.util.withinScope
 import java.lang.reflect.InvocationTargetException
-import java.time.ZoneOffset
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutionException
 import kotlin.LazyThreadSafetyMode.NONE
@@ -91,7 +90,7 @@ internal class ConfigDispatcher : IListener<MessageReceivedEvent> {
                 scope.withinScope(event.message)
         }
 
-        fun SubCommandConfig.isValid(index: Int): Boolean { // Evaluate argument's index
+        fun SubCommandConfig.checkValidation(index: Int): Boolean { // Avoid VerifyError
             return !(requireOwner && (event.client.applicationOwner != event.author)) &&
                 aliases.any { it.equals(arguments.getOrNull(index), ignoreCase) } &&
                 !(ignoreArguments && (arguments.size > (index + 1))) &&
@@ -131,12 +130,12 @@ internal class ConfigDispatcher : IListener<MessageReceivedEvent> {
                     val context = CommandContext(mainCommand, subCommand, event, subArguments)
 
                     if((subCommand == null) && mainCommand.isValid()) {
-                        valid = true // Only the root is not SubCommand
                         mainCommands[mainCommand]?.let { dispatch(context, it) }
+                        valid = true
 
-                    } else if(subCommand?.isValid(level - 1) == true) {
-                        valid = true // Only the root is not SubCommand
+                    } else if(subCommand?.checkValidation(level - 1) == true) {
                         subCommands[subCommand]?.let { dispatch(context, it) }
+                        valid = true
                     }
                 }
 
@@ -165,14 +164,13 @@ internal class ConfigDispatcher : IListener<MessageReceivedEvent> {
 
     private fun dispatch(context: CommandContext, action: (CommandContext) -> Any) {
         try { // Attempt to dispatch the configuration taking into account cooldowns
-            val time = context.event.message.timestamp.toInstant(ZoneOffset.UTC)
 
             cooldowns.filterKeys { // Either 0 or 1 keys are returned due to scope's limitations
                 (it.mainCommand == context.mainCommand) && (it.subCommand == context.subCommand)
             }.forEach { command, cooldown ->
 
-                if(time >= cooldown.end) { // Allows GC
-                    cooldowns.remove(command, cooldown)
+                if(context.event.message.timestamp >= cooldown.end) {
+                    cooldowns.remove(command, cooldown) // Let GC run
 
                 } else { // TODO Find better solution
                     throw CooldownException(cooldown)

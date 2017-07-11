@@ -17,4 +17,68 @@
  */
 package technology.yockto.bc4d4j
 
-class CommandContainer
+import sx.blah.discord.util.RequestBuffer
+import technology.yockto.bc4d4j.annotation.ExceptionHandler
+import technology.yockto.bc4d4j.annotation.MainCommand
+import technology.yockto.bc4d4j.annotation.SubCommand
+import technology.yockto.bc4d4j.context.CommandContext
+import technology.yockto.bc4d4j.context.CooldownContext
+import technology.yockto.bc4d4j.context.CooldownException
+import technology.yockto.bc4d4j.context.ExceptionContext
+import technology.yockto.bc4d4j.context.ResultContext
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+
+class CommandContainer {
+    @MainCommand(
+        prefix = "~",
+        name = "prefix ping",
+        aliases = arrayOf("ping"),
+        subCommands = arrayOf("ping two", "ping exception", "ping result", "ping not-exists"))
+    fun prefixPingCommandTest(context: CommandContext) {
+        RequestBuffer.request { context.event.message.reply("Pong!") }
+    }
+
+    @MainCommand(
+        prefix = " ",
+        name = "mention ping",
+        requireMention = true,
+        aliases = arrayOf("ping"))
+    fun mentionPingCommandTest(context: CommandContext) {
+        RequestBuffer.request { context.event.message.reply("Pong!") }
+    }
+
+    @SubCommand(
+        name = "ping two",
+        aliases = arrayOf("two"))
+    fun pingTwoCommandTest(context: CommandContext) {
+        RequestBuffer.request { context.event.message.reply("Pong Pong!") }
+    }
+
+    @SubCommand(
+        name = "ping result",
+        aliases = arrayOf("result"))
+    @Suppress("UNUSED_PARAMETER")
+    fun cooldownCommandTest(context: CommandContext): ResultContext {
+        return ResultContext( // Cast command again within 10 seconds
+            cooldown = CooldownContext(duration = 10),
+            deleteMessage = true)
+    }
+
+    @ExceptionHandler("ping result")
+    fun resultHandler(context: ExceptionContext) {
+        val exception = context.exception as CooldownException
+        val timeLeft = ChronoUnit.SECONDS.between(LocalDateTime.now(), exception.cooldownContext.end)
+        RequestBuffer.request { context.command.event.message.reply("${timeLeft}s time left!") }
+    }
+
+    @SubCommand(
+        name = "ping exception",
+        aliases = arrayOf("exception"))
+    fun exceptionCommandTest(context: CommandContext): Nothing = throw RuntimeException(context.mainCommand.name)
+
+    @ExceptionHandler(name = "ping exception")
+    fun exceptionHandler(context: ExceptionContext) {
+        RequestBuffer.request { context.command.event.message.reply("Exception!") }
+    }
+}
