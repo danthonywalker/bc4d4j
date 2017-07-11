@@ -1,3 +1,3 @@
 Manifest-Version: 1.0
-Discord4J-ModuleClass: technology.yockto.bc4d4j.impl.BC4D4J
+Discord4J-ModuleClass: technology.yockto.bc4d4j.BC4D4J
 
