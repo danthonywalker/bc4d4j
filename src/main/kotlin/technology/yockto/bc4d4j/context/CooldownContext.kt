@@ -17,14 +17,14 @@
  */
 package technology.yockto.bc4d4j.context
 
-import java.time.Instant
+import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit.SECONDS
 import java.time.temporal.TemporalUnit
 
 data class CooldownContext(
+    val start: LocalDateTime = LocalDateTime.now(),
     val timeUnit: TemporalUnit = SECONDS,
-    val start: Instant = Instant.now(),
     val duration: Long = 0) {
 
-    val end: Instant = start.plus(duration, timeUnit)
+    val end: LocalDateTime = start.plus(duration, timeUnit)
 }
