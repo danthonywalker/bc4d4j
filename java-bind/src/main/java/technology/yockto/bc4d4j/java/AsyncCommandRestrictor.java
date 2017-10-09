@@ -14,17 +14,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-version '0.5.0'
+package technology.yockto.bc4d4j.java;
 
-ext.slf4j_version = '1.8.0-alpha2'
-ext.discord4j_version = '2.9.1'
-ext.logging_version = '1.4.6'
+import technology.yockto.bc4d4j.command.CommandRestrictor;
 
-dependencies {
-    compile "io.github.microutils:kotlin-logging:$logging_version"
-    testCompile "org.slf4j:slf4j-simple:$slf4j_version"
-    compile "org.slf4j:slf4j-api:$slf4j_version"
-
-    compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
-    compileOnly "com.github.austinv11:Discord4J:$discord4j_version"
-}
+@FunctionalInterface
+public interface AsyncCommandRestrictor extends CommandRestrictor, AsyncCommandLimiter {}

@@ -15,3 +15,4 @@
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
 include 'core'
+include 'java-bind'
