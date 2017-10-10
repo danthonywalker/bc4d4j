@@ -14,12 +14,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j.command
+version '0.5.0'
 
-data class CommandConfig(
-    val argumentFactory: ArgumentFactory?,
-    val limiters: Set<CommandLimiter>,
-    val executor: CommandExecutor,
-    val subCommands: Set<String>,
-    val name: String
-)
+dependencies {
+    compile project(":core")
+}

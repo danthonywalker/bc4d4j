@@ -24,7 +24,7 @@ import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 import technology.yockto.bc4d4j.command.Command
 import technology.yockto.bc4d4j.command.CommandContext
-import technology.yockto.bc4d4j.command.CommandLimiter
+import technology.yockto.bc4d4j.command.CommandRestrictor
 import technology.yockto.bc4d4j.command.Failable
 import java.util.concurrent.atomic.AtomicReference
 
@@ -42,12 +42,8 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
             val argumentFactory = it.config.argumentFactory!! // Main commands guarantee never null
             val arguments = argumentFactory.attempt(emptyContext) { it.getArguments(emptyContext) }
 
-            if(arguments?.isEmpty() == true) {
-                argumentFactory.onFail(emptyContext)
-
-            } else if(arguments?.isNotEmpty() == true) {
-                it.process(emptyContext.copy(arguments = arguments))
-            }
+            argumentFactory.takeIf { arguments?.isEmpty() == true }?.onFail(emptyContext)
+            it.takeIf { arguments?.isNotEmpty() == true }?.process(emptyContext.copy(arguments = arguments!!))
         }
     }
 
@@ -59,31 +55,30 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
         null
     }
 
-    private suspend fun Iterable<CommandLimiter>.doesLimit(context: CommandContext) = associateBy {
-        async(coroutineDispatcher) { // Forks possible load
-            it.attempt(context) { it.shouldLimit(context) }
-        }
-
-    }.filter { // Process all forked workload
-        val result = (it.key.await() == true)
-        it.value.takeIf { result }?.onFail(context)
-
-        result
-    }.any()
-
     private suspend fun Command.process(oldContext: CommandContext) {
         val newArguments = oldContext.arguments.subList(1, oldContext.arguments.size)
         val newArgument = oldContext.arguments[0] // Guaranteed that the list will never be empty
         val newContext = CommandContext(newArguments, newArgument, oldContext.event, config.name)
 
-        if(!config.restrictors.doesLimit(newContext)) { // Execute SubCommand
-            config.subCommands.mapNotNull { registry.commands[it] }.forEach {
+        val limiters = config.limiters.associateBy {
+            async(coroutineDispatcher) { // Fork the limiter workload
+                it.attempt(newContext) { it.shouldLimit(newContext) }
+            }
+
+        }.filter { // Process all forked workload
+            val result = (it.key.await() == true)
+            it.value.takeIf { result }?.onFail(newContext)
+
+            result
+        }.values
+
+        if(limiters.none { it is CommandRestrictor }) { // Restrictors stops SubCommand processing and this execution
+            config.takeIf { newArguments.isNotEmpty() }?.subCommands?.mapNotNull { registry.commands[it] }?.forEach {
                 launch(coroutineDispatcher) { it.process(newContext) }
             }
 
-            if(!config.limiters.doesLimit(newContext)) { // Starts the execution
-                config.executor.attempt(newContext) { it.onExecute(newContext) }
-            }
+            // Execute last as execution may take a while so allow the SubCommands to start processing first
+            config.takeIf { limiters.isEmpty() }?.executor?.attempt(newContext) { it.onExecute(newContext) }
         }
     }
 }

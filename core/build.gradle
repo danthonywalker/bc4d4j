@@ -26,5 +26,5 @@ dependencies {
     compile "org.slf4j:slf4j-api:$slf4j_version"
 
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
-    compileOnly "com.github.austinv11:Discord4J:$discord4j_version"
+    compile "com.github.austinv11:Discord4J:$discord4j_version"
 }
