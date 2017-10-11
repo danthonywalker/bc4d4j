@@ -14,8 +14,13 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j.command
+package technology.yockto.bc4d4j.core.command
 
-interface CommandLimiter : Failable {
-    suspend fun shouldLimit(context: CommandContext): Boolean
-}
+data class CommandConfig(
+    val name: String,
+    val executor: CommandExecutor,
+
+    val limiters: Set<CommandLimiter> = emptySet(),
+    val argumentFactory: ArgumentFactory? = null,
+    val subCommands: Set<String> = emptySet()
+)

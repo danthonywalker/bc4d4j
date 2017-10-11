@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j
+package technology.yockto.bc4d4j.core
 
 import kotlinx.coroutines.experimental.CommonPool
 import kotlinx.coroutines.experimental.CoroutineDispatcher
@@ -22,10 +22,10 @@ import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import sx.blah.discord.api.events.IListener
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
-import technology.yockto.bc4d4j.command.Command
-import technology.yockto.bc4d4j.command.CommandContext
-import technology.yockto.bc4d4j.command.CommandRestrictor
-import technology.yockto.bc4d4j.command.Failable
+import technology.yockto.bc4d4j.core.command.Command
+import technology.yockto.bc4d4j.core.command.CommandContext
+import technology.yockto.bc4d4j.core.command.CommandRestrictor
+import technology.yockto.bc4d4j.core.command.Failable
 import java.util.concurrent.atomic.AtomicReference
 
 class CommandDispatcher internal constructor(val registry: CommandRegistry) : IListener<MessageReceivedEvent> {
@@ -72,8 +72,8 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
             result
         }.values
 
-        if(limiters.none { it is CommandRestrictor }) { // Restrictors stops SubCommand processing and this execution
-            config.takeIf { newArguments.isNotEmpty() }?.subCommands?.mapNotNull { registry.commands[it] }?.forEach {
+        if(limiters.filterIsInstance<CommandRestrictor>().isEmpty()) {
+            subCommands.takeIf { newArguments.isNotEmpty() }?.forEach {
                 launch(coroutineDispatcher) { it.process(newContext) }
             }
 

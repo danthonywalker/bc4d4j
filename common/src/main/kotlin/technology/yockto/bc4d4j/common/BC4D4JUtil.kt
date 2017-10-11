@@ -24,9 +24,10 @@ import sx.blah.discord.handle.obj.IRole
 import sx.blah.discord.handle.obj.IUser
 import sx.blah.discord.handle.obj.IVoiceChannel
 import sx.blah.discord.handle.obj.Permissions
-import technology.yockto.bc4d4j.CommandRegistry
-import technology.yockto.bc4d4j.command.CommandContext
-import technology.yockto.bc4d4j.commandDispatcher
+import technology.yockto.bc4d4j.core.CommandRegistry
+import technology.yockto.bc4d4j.core.command.Command
+import technology.yockto.bc4d4j.core.command.CommandContext
+import technology.yockto.bc4d4j.core.commandDispatcher
 
 val CommandContext.client: IDiscordClient get() = event.client
 val CommandContext.textChannel: IChannel get() = event.channel
@@ -41,3 +42,4 @@ val CommandContext.permissions: Set<Permissions> // To truly represent all possi
     get() = (textChannel.getModifiedPermissions(author) + (voiceChannel?.getModifiedPermissions(author) ?: emptySet()))
 
 val IDiscordClient.commandRegistry: CommandRegistry get() = commandDispatcher.registry
+val CommandContext.command: Command? get() = client.commandRegistry.commands[commandName]

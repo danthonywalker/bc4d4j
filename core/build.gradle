@@ -22,7 +22,6 @@ ext.logging_version = '1.4.6'
 
 dependencies {
     compile "io.github.microutils:kotlin-logging:$logging_version"
-    testCompile "org.slf4j:slf4j-simple:$slf4j_version"
     compile "org.slf4j:slf4j-api:$slf4j_version"
 
     compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"

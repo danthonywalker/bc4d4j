@@ -14,14 +14,6 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j.command
+package technology.yockto.bc4d4j.core.command
 
-import mu.KLogging
-
-interface Failable {
-    suspend fun onFail(context: CommandContext, exception: Exception? = null) { // Default to doing log
-        logger.debug { "Command, ${context.commandName}, failed for $this with Exception: $exception" }
-    }
-
-    private companion object : KLogging()
-}
+interface CommandRestrictor : CommandLimiter

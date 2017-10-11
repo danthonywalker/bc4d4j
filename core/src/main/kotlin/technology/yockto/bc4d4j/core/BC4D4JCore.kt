@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j
+package technology.yockto.bc4d4j.core
 
 import sx.blah.discord.api.IDiscordClient
 import sx.blah.discord.modules.IModule

@@ -14,11 +14,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-@file:JvmName("BC4D4JFactory")
-package technology.yockto.bc4d4j
+package technology.yockto.bc4d4j.core.command
 
-import sx.blah.discord.api.IDiscordClient
-import java.util.concurrent.ConcurrentHashMap
-
-internal val instances = ConcurrentHashMap<IDiscordClient, CommandDispatcher>()
-val IDiscordClient.commandDispatcher: CommandDispatcher get() = instances[this]!!
+interface ArgumentFactory : Failable {
+    suspend fun getArguments(context: CommandContext): List<String>
+}

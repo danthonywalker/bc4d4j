@@ -14,12 +14,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j.command
+package technology.yockto.bc4d4j.common
 
-data class CommandConfig(
-    val argumentFactory: ArgumentFactory?,
-    val limiters: Set<CommandLimiter>,
-    val executor: CommandExecutor,
-    val subCommands: Set<String>,
-    val name: String
-)
+import sx.blah.discord.api.IDiscordClient
+import sx.blah.discord.modules.IModule
+
+class BC4D4JCommon : IModule {
+    override fun getName(): String = "Better Commands 4 Discord4J Common"
+    override fun getMinimumDiscord4JVersion(): String = "2.9.1"
+    override fun getAuthor(): String = "danthonywalker"
+    override fun getVersion(): String = "0.5.0"
+
+    override fun enable(client: IDiscordClient): Boolean = true
+    override fun disable() = Unit
+}

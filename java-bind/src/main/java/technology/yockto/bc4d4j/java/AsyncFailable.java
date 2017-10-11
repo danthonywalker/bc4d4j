@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import technology.yockto.bc4d4j.command.CommandContext;
-import technology.yockto.bc4d4j.command.Failable;
+import technology.yockto.bc4d4j.core.command.CommandContext;
+import technology.yockto.bc4d4j.core.command.Failable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;

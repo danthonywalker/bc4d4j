@@ -20,8 +20,8 @@ import kotlin.coroutines.experimental.Continuation;
 import kotlinx.coroutines.experimental.future.FutureKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import technology.yockto.bc4d4j.command.ArgumentFactory;
-import technology.yockto.bc4d4j.command.CommandContext;
+import technology.yockto.bc4d4j.core.command.ArgumentFactory;
+import technology.yockto.bc4d4j.core.command.CommandContext;
 
 import java.util.List;
 import java.util.concurrent.CompletionStage;

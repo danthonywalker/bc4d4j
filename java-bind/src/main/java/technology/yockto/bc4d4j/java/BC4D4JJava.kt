@@ -14,8 +14,17 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with bc4d4j.  If not, see <http://www.gnu.org/licenses/>.
  */
-package technology.yockto.bc4d4j.command
+package technology.yockto.bc4d4j.java
 
-interface ArgumentFactory : Failable {
-    suspend fun getArguments(context: CommandContext): List<String>
+import sx.blah.discord.api.IDiscordClient
+import sx.blah.discord.modules.IModule
+
+class BC4D4JJava : IModule {
+    override fun getName(): String = "Better Commands 4 Discord4J Java-Bind"
+    override fun getMinimumDiscord4JVersion(): String = "2.9.1"
+    override fun getAuthor(): String = "danthonywalker"
+    override fun getVersion(): String = "0.5.0"
+
+    override fun enable(client: IDiscordClient): Boolean = true
+    override fun disable() = Unit
 }
