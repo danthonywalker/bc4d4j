@@ -29,13 +29,13 @@ import java.util.concurrent.CompletionStage;
 @FunctionalInterface
 public interface AsyncArgumentFactory extends ArgumentFactory, AsyncFailable {
     @NotNull
-    CompletionStage<List<String>> getArgumentsAsync(@NotNull CommandContext context);
+    CompletionStage<List<String>> getArgumentsAsync(@NotNull CommandContext context) throws Exception;
 
     @Nullable
     @Override
     @Deprecated
     default Object getArguments(@NotNull final CommandContext context,
-                                @NotNull final Continuation<? super List<String>> continuation) {
-        return FutureKt.await(getArgumentsAsync(context), continuation);
+                                @NotNull final Continuation<? super List<String>> continuation) throws Exception {
+        return FutureKt.await(getArgumentsAsync(context), continuation); // Delegate an operation to Kotlin stdlib
     }
 }

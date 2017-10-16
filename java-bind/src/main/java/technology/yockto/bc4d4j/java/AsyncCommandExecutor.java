@@ -29,13 +29,13 @@ import java.util.concurrent.CompletionStage;
 @FunctionalInterface
 public interface AsyncCommandExecutor extends CommandExecutor, AsyncFailable {
     @NotNull
-    CompletionStage<Void> onExecuteAsync(@NotNull CommandContext context);
+    CompletionStage<Void> onExecuteAsync(@NotNull CommandContext context) throws Exception;
 
     @Nullable
     @Override
     @Deprecated
     default Object onExecute(@NotNull final CommandContext context,
-                             @NotNull final Continuation<? super Unit> continuation) {
+                             @NotNull final Continuation<? super Unit> continuation) throws Exception {
         return FutureKt.await(onExecuteAsync(context).thenApply(ignored -> Unit.INSTANCE), continuation);
     }
 }

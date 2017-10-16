@@ -17,5 +17,6 @@
 package technology.yockto.bc4d4j.core.command
 
 interface CommandLimiter : Failable {
+    @Throws(Exception::class)
     suspend fun shouldLimit(context: CommandContext): Boolean
 }

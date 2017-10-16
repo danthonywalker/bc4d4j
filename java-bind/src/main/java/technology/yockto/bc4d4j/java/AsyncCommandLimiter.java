@@ -28,13 +28,13 @@ import java.util.concurrent.CompletionStage;
 @FunctionalInterface
 public interface AsyncCommandLimiter extends CommandLimiter, AsyncFailable {
     @NotNull
-    CompletionStage<Boolean> shouldLimitAsync(@NotNull CommandContext context);
+    CompletionStage<Boolean> shouldLimitAsync(@NotNull CommandContext context) throws Exception;
 
     @Nullable
     @Override
     @Deprecated
     default Object shouldLimit(@NotNull final CommandContext context,
-                               @NotNull final Continuation<? super Boolean> continuation) {
-        return FutureKt.await(shouldLimitAsync(context), continuation);
+                               @NotNull final Continuation<? super Boolean> continuation) throws Exception {
+        return FutureKt.await(shouldLimitAsync(context), continuation); // Delegate suspend to Kotlin stdlib
     }
 }

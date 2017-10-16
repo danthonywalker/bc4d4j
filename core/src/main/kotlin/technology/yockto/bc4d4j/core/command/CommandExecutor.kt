@@ -17,5 +17,6 @@
 package technology.yockto.bc4d4j.core.command
 
 interface CommandExecutor : Failable {
+    @Throws(Exception::class)
     suspend fun onExecute(context: CommandContext)
 }

@@ -17,5 +17,6 @@
 package technology.yockto.bc4d4j.core.command
 
 interface ArgumentFactory : Failable {
+    @Throws(Exception::class)
     suspend fun getArguments(context: CommandContext): List<String>
 }
