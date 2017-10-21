@@ -43,3 +43,4 @@ val CommandContext.permissions: Set<Permissions> // To truly represent all possi
 
 val IDiscordClient.commandRegistry: CommandRegistry get() = commandDispatcher.registry
 val CommandContext.command: Command? get() = client.commandRegistry.commands[commandName]
+val CommandContext.parentCommands: List<Command?> get() = parentCommandNames.map { client.commandRegistry.commands[it] }

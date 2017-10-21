@@ -38,7 +38,13 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
     override fun handle(event: MessageReceivedEvent) = registry.mainCommands.forEach {
         launch(coroutineDispatcher) { // Quickly frees up the event dispatching thread
 
-            val emptyContext = CommandContext(emptyList(), "", event, it.config.name)
+            val emptyContext = CommandContext(
+                parentCommandNames = emptyList(),
+                commandName = it.config.name,
+                arguments = emptyList(),
+                argument = "",
+                event = event)
+
             val argumentFactory = it.config.argumentFactory!! // Main commands guarantee never null
             val arguments = argumentFactory.attempt(emptyContext) { it.getArguments(emptyContext) }
 
@@ -56,9 +62,12 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
     }
 
     private suspend fun Command.process(oldContext: CommandContext) {
-        val newArguments = oldContext.arguments.subList(1, oldContext.arguments.size)
-        val newArgument = oldContext.arguments[0] // Guaranteed that the list will never be empty
-        val newContext = CommandContext(newArguments, newArgument, oldContext.event, config.name)
+        val newContext = CommandContext( // Derive a new context for *this* command
+            arguments = oldContext.arguments.subList(1, oldContext.arguments.size),
+            parentCommandNames = oldContext.parentCommandNames,
+            argument = oldContext.arguments[0],
+            commandName = config.name,
+            event = oldContext.event)
 
         val limiters = config.limiters.associateBy {
             async(coroutineDispatcher) { // Fork the limiter workload
@@ -72,9 +81,11 @@ class CommandDispatcher internal constructor(val registry: CommandRegistry) : IL
             result
         }.values
 
-        if(limiters.filterIsInstance<CommandRestrictor>().isEmpty()) {
-            subCommands.takeIf { newArguments.isNotEmpty() }?.forEach {
-                launch(coroutineDispatcher) { it.process(newContext) }
+        if(limiters.filterIsInstance<CommandRestrictor>().isEmpty()) { // SubCommands can now assume this as a parent
+            val subCommandContext = newContext.copy(parentCommandNames = newContext.parentCommandNames + config.name)
+
+            subCommands.takeIf { newContext.arguments.isNotEmpty() }?.forEach {
+                launch(coroutineDispatcher) { it.process(subCommandContext) }
             }
 
             // Execute last as execution may take a while so allow the SubCommands to start processing first

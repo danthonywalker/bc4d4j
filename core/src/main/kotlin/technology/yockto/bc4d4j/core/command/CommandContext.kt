@@ -19,6 +19,7 @@ package technology.yockto.bc4d4j.core.command
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent
 
 data class CommandContext(
+    val parentCommandNames: List<String>,
     val arguments: List<String>,
     val argument: String,
 
