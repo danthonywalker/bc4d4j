@@ -17,8 +17,8 @@
 group = 'technology.yockto.bc4d4j'
 
 buildscript {
-    ext.coroutines_version = '0.19.1'
-    ext.versions_version = '0.15.0'
+    ext.coroutines_version = '0.20-alpha-8'
+    ext.versions_version = '0.17.0'
     ext.kotlin_version = '1.1.51'
     ext.shadow_version = '2.0.1'
 
@@ -50,9 +50,11 @@ allprojects {
 
     dependencies { // Kotlin is applied everywhere, so provide the stdlib
         compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+        // Coroutines require special Gradle flags to omit warnings so apply to all
+        compile "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version"
     }
 
-    kotlin {
-        experimental.coroutines = "enable"
-    }
+    kotlin.experimental.coroutines = "enable"
+    compileKotlin.kotlinOptions.jvmTarget = "1.8"
+    compileTestKotlin.kotlinOptions.jvmTarget = "1.8"
 }
